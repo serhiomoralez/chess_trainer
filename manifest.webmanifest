@@ -1,0 +1,9 @@
+{
+  "name": "Шахматный тренер",
+  "short_name": "Шахтренер",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#101820",
+  "theme_color": "#17212b",
+  "lang": "ru"
+}

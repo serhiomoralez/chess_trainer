@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#17212b">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Шахматный тренер — 0.1</title>
+<style>
+:root{--bg:#101820;--panel:#1a2732;--panel2:#223340;--text:#eef3f6;--muted:#a9bac6;--accent:#8bc5a5;--light:#e7dfcf;--dark:#75917f;--selected:#f4d35e;--last:rgba(246,220,105,.42)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:760px;margin:auto;padding:18px 14px 30px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+h1{font-size:21px;margin:0;font-weight:750}.ver{font-size:12px;color:var(--muted);background:var(--panel2);padding:5px 9px;border-radius:20px}
+.sub{color:var(--muted);font-size:13px;margin:5px 0 16px}
+.panel{background:var(--panel);border:1px solid #2a3a46;border-radius:16px;padding:13px;margin-bottom:12px}
+.status{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:10px}
+#status{font-weight:650}.tag{font-size:12px;color:var(--muted)}
+.board{width:min(100%,560px);aspect-ratio:1;margin:0 auto;display:grid;grid-template-columns:repeat(8,1fr);border:4px solid #31434e;border-radius:5px;overflow:hidden;touch-action:manipulation}
+.square{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1;cursor:pointer;user-select:none}
+.square.light{background:var(--light)}.square.dark{background:var(--dark)}
+.square.selected{box-shadow:inset 0 0 0 4px var(--selected)}
+.square.last{background-image:linear-gradient(var(--last),var(--last))}
+.piece{font-family:"Arial Unicode MS","DejaVu Sans",serif;font-size:clamp(27px,8vw,54px);line-height:1;z-index:1;text-shadow:0 1px 1px #0005}
+.white-piece{color:#fff;text-shadow:0 1px 2px #000,0 0 2px #222}.black-piece{color:#17212b;text-shadow:0 1px 1px #fff8}
+.coord{position:absolute;font-size:9px;font-weight:700;opacity:.72;left:3px;bottom:1px;z-index:2;color:#16232b}
+.square.dark .coord{color:#f4f0e7}.dot{position:absolute;width:20%;height:20%;border-radius:50%;background:#17212b45}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+button,select{border:0;border-radius:10px;padding:11px 13px;font:600 14px system-ui;cursor:pointer}
+button.primary{background:var(--accent);color:#102019}button.secondary,select{background:var(--panel2);color:var(--text)}button:disabled{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px}.field select{width:100%}
+.moves{font:13px ui-monospace,monospace;line-height:1.8;white-space:pre-wrap;color:#d8e2e8;max-height:125px;overflow:auto}
+.note{font-size:12px;color:var(--muted);line-height:1.5}.section-title{font-weight:700;margin-bottom:8px}
+#historyEmpty{color:var(--muted);font-size:13px}
+@media(min-width:620px){.game-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(210px,.8fr);gap:14px;align-items:start}.board{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Шахматный тренер</h1><span class="ver">ПРОТОТИП 0.1</span></div>
+  <div class="sub">Первая сборка: игра, легальные ходы и история партий.</div>
+  <div class="panel">
+    <div class="grid2">
+      <div class="field"><label for="side">Играть за</label><select id="side"><option value="w">Белых</option><option value="b">Чёрных</option></select></div>
+      <div class="field"><label for="level">Соперник</label><select id="level"><option value="random">Тренировочный — случайные ходы</option><option value="careful">Осторожный — пока недоступен</option></select></div>
+    </div>
+  </div>
+  <div class="game-layout">
+    <div class="panel">
+      <div class="status"><span id="status">Загрузка шахматных правил…</span><span class="tag" id="turn">Ход белых</span></div>
+      <div id="board" class="board" aria-label="Шахматная доска"></div>
+      <div class="controls">
+        <button class="primary" id="newGame">Новая партия</button>
+        <button class="secondary" id="undo">Отменить ход</button>
+        <button class="secondary" id="flip">Перевернуть доску</button>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="section-title">Ходы партии</div>
+        <div id="moves" class="moves"><span id="historyEmpty">Пока ходов нет.</span></div>
+      </div>
+      <div class="panel">
+        <div class="section-title">После партии</div>
+        <div id="result" class="note">Здесь появится результат. Подробный разбор подключим в следующей версии вместе с шахматным движком.</div>
+      </div>
+      <div class="panel">
+        <div class="section-title">Что уже работает</div>
+        <div class="note">• Правила шахмат и проверка легальности ходов<br>• Рокировка, взятие на проходе, превращение пешки<br>• Игра против простого соперника<br>• История последних партий на этом устройстве</div>
+      </div>
+    </div>
+  </div>
+  <div class="note" style="text-align:center;margin-top:10px">Для первой загрузки требуется интернет: шахматная библиотека загружается с CDN. Это экспериментальная версия, не используй её как единственное место хранения партий.</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.4.0/chess.min.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const boardEl=$('board'), sideEl=$('side');
+let game, selected=null, legal=[], flipped=false, lastMove=null, thinking=false;
+const glyph={wk:'♔',wq:'♕',wr:'♖',wb:'♗',wn:'♘',wp:'♙',bk:'♚',bq:'♛',br:'♜',bb:'♝',bn:'♞',bp:'♟'};
+const files='abcdefgh';
+function start(){game=new Chess();selected=null;legal=[];lastMove=null;thinking=false;$('result').textContent='Партия началась. После завершения появится краткий итог.';render();if(sideEl.value==='b')setTimeout(botMove,450)}
+function coords(square){return {file:files.indexOf(square[0]),rank:8-Number(square[1])}}
+function render(){
+ boardEl.innerHTML='';
+ const rows=flipped?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7];
+ const cols=flipped?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7];
+ const matrix=game.board();
+ rows.forEach((r,ri)=>cols.forEach((c,ci)=>{
+  const sq=files[c]+(8-r), piece=matrix[r][c], el=document.createElement('div');
+  el.className='square '+((r+c)%2===0?'light':'dark');
+  if(selected===sq)el.classList.add('selected');
+  if(lastMove&&(lastMove.from===sq||lastMove.to===sq))el.classList.add('last');
+  if(piece){const p=document.createElement('span');p.className='piece '+(piece.color==='w'?'white-piece':'black-piece');p.textContent=glyph[piece.color+piece.type];el.appendChild(p)}
+  if(legal.some(m=>m.to===sq)){const dot=document.createElement('span');dot.className='dot';el.appendChild(dot)}
+  if((!flipped&&ci===0)||(flipped&&ci===7)){const co=document.createElement('span');co.className='coord';co.textContent=String(8-r);el.appendChild(co)}
+  if((!flipped&&ri===7)||(flipped&&ri===0)){const co=document.createElement('span');co.className='coord';co.style.left='auto';co.style.right='3px';co.textContent=files[c];el.appendChild(co)}
+  el.addEventListener('click',()=>tap(sq));boardEl.appendChild(el);
+ }));
+ updateStatus();updateMoves();
+}
+function tap(sq){
+ if(thinking||game.isGameOver()||game.turn()!==sideEl.value)return;
+ const piece=game.get(sq);
+ if(selected&&legal.some(m=>m.to===sq)){
+  let promo='q';const moving=game.get(selected);if(moving&&moving.type==='p'&&(sq[1]==='8'||sq[1]==='1')){const choice=prompt('Превращение: q — ферзь, r — ладья, b — слон, n — конь','q');if(choice&&'qrbn'.includes(choice.toLowerCase()))promo=choice.toLowerCase()}
+  const move=game.move({from:selected,to:sq,promotion:promo});if(move){lastMove=move;selected=null;legal=[];render();if(game.isGameOver())finish();else setTimeout(botMove,350);return}
+ }
+ if(piece&&piece.color===game.turn()){selected=sq;legal=game.moves({square:sq,verbose:true});}
+ else{selected=null;legal=[]}
+ render();
+}
+function botMove(){
+ if(game.isGameOver()||game.turn()===sideEl.value)return;
+ thinking=true;updateStatus();
+ setTimeout(()=>{
+  const all=game.moves({verbose:true});
+  if(all.length){const move=all[Math.floor(Math.random()*all.length)];lastMove=game.move({from:move.from,to:move.to,promotion:'q'});}
+  thinking=false;selected=null;legal=[];render();if(game.isGameOver())finish();
+ },450);
+}
+function updateStatus(){
+ let s='Ход '+(game.turn()==='w'?'белых':'чёрных');
+ if(game.isCheck())s+=' — шах!';
+ if(game.isCheckmate())s='Мат. Партия окончена.';
+ else if(game.isDraw())s='Ничья. Партия окончена.';
+ else if(thinking)s='Соперник думает…';
+ $('status').textContent=s;$('turn').textContent=game.turn()==='w'?'Белые':'Чёрные';
+ $('undo').disabled=game.history().length===0||thinking;
+}
+function updateMoves(){
+ const hist=game.history();if(!hist.length){$('moves').textContent='Пока ходов нет.';return}
+ let out='';for(let i=0;i<hist.length;i+=2)out+=(Math.floor(i/2)+1)+'. '+hist[i]+'  '+(hist[i+1]||'')+'\n';$('moves').textContent=out;
+}
+function finish(){
+ const outcome=game.isCheckmate()?'Мат — победа '+(game.turn()==='w'?'чёрных':'белых'):game.isDraw()?'Ничья':'Партия окончена';
+ $('result').textContent=outcome+'. Подробный анализ появится в следующей версии.';
+ try{const saved=JSON.parse(localStorage.getItem('chessTrainerGames')||'[]');saved.unshift({date:new Date().toISOString(),result:outcome,side:sideEl.value,moves:game.history()});localStorage.setItem('chessTrainerGames',JSON.stringify(saved.slice(0,30)))}catch(e){}
+}
+$('newGame').onclick=()=>{if(game&&game.history().length&&!game.isGameOver()&&!confirm('Начать новую партию? Текущая партия не будет сохранена.'))return;start()};
+$('undo').onclick=()=>{if(thinking)return;game.undo();if(game.turn()!==sideEl.value)game.undo();selected=null;legal=[];lastMove=null;render();$('result').textContent='Ход отменён.'};
+$('flip').onclick=()=>{flipped=!flipped;render()};
+sideEl.onchange=()=>start();
+$('level').onchange=()=>{if($('level').value==='careful'){alert('Осторожный соперник появится после подключения движка. Пока доступен тренировочный режим.');$('level').value='random'}};
+if(typeof Chess==='undefined'){$('status').textContent='Не удалось загрузить шахматную библиотеку. Проверь интернет и обнови страницу.';$('newGame').disabled=true}
+else start();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+})();
+</script>
+</body></html>
